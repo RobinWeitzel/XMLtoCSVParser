@@ -1,5 +1,6 @@
 package xmltocsvparser.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
@@ -15,7 +16,7 @@ import java.util.ArrayList;
  *
  * @author Robin Weitzel
  */
-public class CustomPath {
+public class CustomPath implements Serializable {
     private int[] nodes; // The exact path to a node, an Array containing all the turns needed to get there
     private String[] weakNodes; // A weak path using names (which might be used more than once in an XML-file)
     private String tagName;

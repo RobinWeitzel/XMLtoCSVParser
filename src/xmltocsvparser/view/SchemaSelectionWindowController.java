@@ -2,13 +2,11 @@ package xmltocsvparser.view;
 
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.*;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import xmltocsvparser.MainApp;
 import xmltocsvparser.model.CustomHeader;
 import xmltocsvparser.model.CustomPath;
 import xmltocsvparser.model.CustomTreeItem;
@@ -17,23 +15,32 @@ import xmltocsvparser.model.XMLHandler;
 import java.util.ArrayList;
 
 /**
- * Created by Robin on 19.10.2016.
+ * Created by Robin on 20.10.2016.
  */
-public class LeftTreeController {
-    @FXML private TreeView<CustomPath> leftTreeView;
-    @FXML private TreeView<CustomPath> rightTreeView;
-    @FXML private Button add;
-    @FXML private Button remove;
-    @FXML private Button confirm;
-    @FXML private Label leftLabel;
-    @FXML private Label rightLabel;
+public class SchemaSelectionWindowController {
+    @FXML
+    private TreeView<CustomPath> leftTreeView;
+    @FXML
+    private TreeView<CustomPath> rightTreeView;
+    @FXML
+    private Button add;
+    @FXML
+    private Button remove;
+    @FXML
+    private Button confirm;
+    @FXML
+    private Label leftLabel;
+    @FXML
+    private Label rightLabel;
 
     private int idCounter = 0;
     private CustomTreeItem<CustomPath> leftRoot, rightRoot;
     private int offset = -1;
+    private MainApp mainApp;
 
 
-    public LeftTreeController() {}
+    public SchemaSelectionWindowController() {
+    }
 
     @FXML
     public void initialize() {
@@ -44,13 +51,18 @@ public class LeftTreeController {
         rightRoot = new CustomTreeItem<>();
         this.rightTreeView.setRoot(rightRoot);
         rightTreeView.setShowRoot(false);
+
+        leftTreeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        rightTreeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
 
 
     /**
      * Reads in an XML-File and adds all nodes to the left JTree
      */
-    public int startAddXML (XMLHandler xmlHandler) {
+    public int startAddXML() {
+
+        XMLHandler xmlHandler = new XMLHandler(mainApp.getFileList().get(0).getAbsolutePath());
         Element element;
         NodeList nodeList = xmlHandler.getDocument().getElementsByTagName(xmlHandler.getRootTagName());
         // Adds all children to the root
@@ -74,17 +86,17 @@ public class LeftTreeController {
     }
 
 
-
     /**
      * Adds an element and all its children from the XML-file to the lfet JTree
      * Gets called by {@link #startRecursiveAddAllNodesFromXML(XMLHandler, DefaultTreeModel, CustomMutableTreeNode)} after the root has been created
-     * @param element the element to be added to the left JTree
-     * @param arrayList the list containing the path to the parent
-     * @param arrayList2 weak path to the parent
+     *
+     * @param element          the element to be added to the left JTree
+     * @param arrayList        the list containing the path to the parent
+     * @param arrayList2       weak path to the parent
      * @param defaultTreeModel TreeModel to which the nodes should be added
      * @return returns the node after it has been added to the JTree
      */
-    private CustomTreeItem<CustomPath> addXML (Element element, ArrayList<Integer> arrayList, ArrayList<String> arrayList2) { // Ensures the selected node is an element (XML contains a lot of none-element nodes which need to be filtered out)
+    private CustomTreeItem<CustomPath> addXML(Element element, ArrayList<Integer> arrayList, ArrayList<String> arrayList2) { // Ensures the selected node is an element (XML contains a lot of none-element nodes which need to be filtered out)
         CustomPath customPath = new CustomPath(arrayList, arrayList2, element.getTagName());
         CustomTreeItem customTreeItem = new CustomTreeItem(customPath, idCounter++);
         boolean isChild = true;
@@ -97,7 +109,7 @@ public class LeftTreeController {
                 if (offset == -1) {
                     offset = temp;
                 }
-                ArrayList<Integer> arrayListCopy= new ArrayList<>(arrayList);
+                ArrayList<Integer> arrayListCopy = new ArrayList<>(arrayList);
                 ArrayList<String> arrayList2Copy = new ArrayList<>(arrayList2);
                 Element newElement = (Element) nodeList.item(temp);
                 arrayListCopy.add(counter);
@@ -165,14 +177,14 @@ public class LeftTreeController {
 
     @FXML
     private void confirmButtonPressed() {
-        ArrayList<CustomHeader> headers = new ArrayList<>(0);
-        readRightTree(rightRoot, headers);
+        readRightTree(rightRoot, mainApp.getHeaders());
+        mainApp.matchNextSchema();
     }
-
 
 
     /**
      * Adds a node and all its parents to the right JTree
+     *
      * @param node the node to be added
      */
     private void addTreeItem(CustomTreeItem<CustomPath> treeItem) {
@@ -188,13 +200,14 @@ public class LeftTreeController {
 
             if (child == null) { // Checks if the child exists in the right JTree
                 child = new CustomTreeItem<CustomPath>(treeItem.getValue(), treeItem.getId());
-                parent.getChildren().add(treeItem.getParent().getChildren().indexOf(treeItem), child); // Adds the child-node to the parent in the right tree
+                parent.getChildren().add(child); // Adds the child-node to the parent in the right tree
             }
         }
     }
 
     /**
      * Adds al children of a node to the right JTree
+     *
      * @param node the node whos children should be added to the right JTree
      */
     private void recursiveAddAllChildNodes(CustomTreeItem<CustomPath> treeItem) {
@@ -216,9 +229,10 @@ public class LeftTreeController {
     /**
      * Deletes a node and all its children from the right JTree
      * Furthermore removes the parents if the node is the only child (Ensuring no empty parent-nodes exist)
+     *
      * @param node the node to be removed
      */
-    private void recursiveDeleteNode (CustomTreeItem treeItem) {
+    private void recursiveDeleteNode(CustomTreeItem treeItem) {
 
         if (treeItem != null) {
             if (treeItem.getParent() != null) { // Makes sure the node exists
@@ -241,7 +255,7 @@ public class LeftTreeController {
         }
     }
 
-    private void readRightTree(CustomTreeItem treeItem, ArrayList<CustomHeader> headers) {
+    private void readRightTree(CustomTreeItem treeItem, ObservableList<CustomHeader> headers) {
         if (treeItem.isLeaf()) {
             if (treeItem.getId() != -1) { // Makes sure the root is not copied
                 CustomHeader header = new CustomHeader((CustomPath) treeItem.getValue());
@@ -252,5 +266,14 @@ public class LeftTreeController {
                 readRightTree((CustomTreeItem) treeItem.getChildren().get(temp), headers);
             }
         }
+    }
+
+    /**
+     * Is called by the main application to give a reference back to itself.
+     *
+     * @param mainApp
+     */
+    public void setMainApp(MainApp mainApp) {
+        this.mainApp = mainApp;
     }
 }

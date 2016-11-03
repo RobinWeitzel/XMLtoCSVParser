@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+            minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/8.0.60"
+            fx:controller="xmltocsvparser.view.MatchSchemaController">
+    <children>
+        <BorderPane layoutX="32.0" layoutY="33.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                    prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <center>
+                <VBox alignment="CENTER" prefHeight="400.0" prefWidth="118.0" BorderPane.alignment="CENTER">
+                    <children>
+                        <Button fx:id="add" mnemonicParsing="false" onAction="#addButtonPressed" text="&gt;&gt;">
+                            <tooltip>
+                                <Tooltip text="Adds the selected Nodes to the Schema"/>
+                            </tooltip>
+                        </Button>
+                        <Button fx:id="remove" mnemonicParsing="false" onAction="#removeButtonPressed" text="&lt;&lt;">
+                            <tooltip>
+                                <Tooltip text="Removes the selected Nodes from the Schema"/>
+                            </tooltip>
+                        </Button>
+                        <Button fx:id="confirm" mnemonicParsing="false" onAction="#confirmButtonPressed"
+                                text="Confirm"/>
+                    </children>
+                </VBox>
+            </center>
+            <left>
+                <SplitPane dividerPositions="0.0829145728643216" orientation="VERTICAL" prefHeight="400.0"
+                           prefWidth="253.0" BorderPane.alignment="CENTER">
+                    <items>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                            <children>
+                                <Label fx:id="leftLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="99.0"
+                                       layoutY="7.0" prefHeight="30.0" prefWidth="226.0" text="Label"
+                                       AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                       AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                            </children>
+                        </AnchorPane>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                            <children>
+                                <TreeView fx:id="leftTreeView" layoutX="13.0" layoutY="48.0" prefHeight="362.0"
+                                          prefWidth="226.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                            </children>
+                        </AnchorPane>
+                    </items>
+                </SplitPane>
+            </left>
+            <right>
+                <SplitPane dividerPositions="0.0829145728643216" orientation="VERTICAL" prefHeight="400.0"
+                           prefWidth="249.0" BorderPane.alignment="CENTER">
+                    <items>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                            <children>
+                                <Label fx:id="rightLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="99.0"
+                                       layoutY="7.0" prefHeight="30.0" prefWidth="226.0" text="Label"
+                                       AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                       AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                            </children>
+                        </AnchorPane>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                            <children>
+                                <ListView fx:id="rightListView" prefHeight="362.0" prefWidth="247.0"
+                                          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                            </children>
+                        </AnchorPane>
+                    </items>
+                </SplitPane>
+            </right>
+        </BorderPane>
+    </children>
+</AnchorPane>
