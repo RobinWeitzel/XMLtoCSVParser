@@ -1,0 +1,28 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="XMLtoCSVParser">
+    <output-path>$PROJECT_DIR$/out/artifacts/XMLtoCSVParser</output-path>
+    <properties id="javafx-properties">
+      <options>
+        <option name="appClass" value="xmltocsvparser.MainApp" />
+        <option name="description" value="A program parsing multiple XML-files into one CSV-file." />
+        <option name="htmlPlaceholderId" value="" />
+        <option name="icons">
+          <JavaFxApplicationIcons>
+            <option name="linuxIcon" value="$PROJECT_DIR$/resources/icon.png" />
+            <option name="macIcon" value="$PROJECT_DIR$/resources/icon.icns" />
+            <option name="windowsIcon" value="$PROJECT_DIR$/resources/icon.ico" />
+          </JavaFxApplicationIcons>
+        </option>
+        <option name="nativeBundle" value="all" />
+        <option name="title" value="XML to CSV Parser" />
+        <option name="vendor" value="" />
+        <option name="version" value="2.0" />
+      </options>
+    </properties>
+    <root id="root">
+      <element id="archive" name="XMLtoCSVParser.jar">
+        <element id="module-output" name="XMLtoCSVParser" />
+      </element>
+    </root>
+  </artifact>
+</component>
