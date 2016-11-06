@@ -236,4 +236,8 @@ public class CustomHeader implements Serializable {
     public boolean isJustSchema() {
         return justSchema;
     }
+
+    public boolean hasTempPath() {
+        return tempPath != null;
+    }
 }

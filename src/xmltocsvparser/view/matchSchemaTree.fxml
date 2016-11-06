@@ -3,8 +3,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-            minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/8.0.60"
-            fx:controller="xmltocsvparser.view.MatchSchemaTreeController">
+            minHeight="-Infinity" minWidth="-Infinity" stylesheets="@matchSchemaTree.css"
+            xmlns="http://javafx.com/javafx/8.0.60" fx:controller="xmltocsvparser.view.MatchSchemaTreeController">
     <children>
         <BorderPane layoutX="32.0" layoutY="33.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
                     prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
@@ -66,7 +66,8 @@
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                             <children>
                                 <TreeView fx:id="rightTreeView" layoutX="13.0" layoutY="48.0" prefHeight="362.0"
-                                          prefWidth="226.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                          prefWidth="226.0" stylesheets="@matchSchemaTree.css"
+                                          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                                           AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
                             </children>
                         </AnchorPane>

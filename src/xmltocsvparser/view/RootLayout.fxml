@@ -3,8 +3,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
-            minWidth="-Infinity" prefHeight="420.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.60"
-            fx:controller="xmltocsvparser.view.RootLayoutController">
+            minWidth="-Infinity" prefHeight="420.0" prefWidth="600.0" stylesheets="@matchSchemaTree.css"
+            xmlns="http://javafx.com/javafx/8.0.60" fx:controller="xmltocsvparser.view.RootLayoutController">
    <top>
        <GridPane prefHeight="45.0" prefWidth="600.0" BorderPane.alignment="CENTER">
            <columnConstraints>

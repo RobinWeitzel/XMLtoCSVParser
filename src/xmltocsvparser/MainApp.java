@@ -39,10 +39,10 @@ public class MainApp extends Application {
     private ArrayList<Integer> offsetList;
     private ObservableList<CustomHeader> headers;
     private int filesProcessedCount; // how many files have been processed
-    private boolean useWeakPaths = true; // If weak paths should be used
     private XMLHandler xmlHandler;
     private RootLayoutController rootLayoutController;
     private int bestSchema;
+    private double bestMatch;
     private boolean endView = false;
 
     public static void main(String[] args) {
@@ -110,6 +110,8 @@ public class MainApp extends Application {
             offsetList = new ArrayList<>();
             offsetList.add(controller.startAddXML());
             filesProcessedCount = 0;
+            endView = false;
+            headers = FXCollections.observableArrayList();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -139,7 +141,9 @@ public class MainApp extends Application {
                         startRecursiveApplySchema(bestSchema);
                         controller.setLabel(fileList.get(bestSchema).getName());
                     }
-                    if ((SettingsHandler.getMatchingMethod().equals("semiautomatic") && bestSchema >= SettingsHandler.getThreshold()) || SettingsHandler.getMatchingMethod().equals("automatic")) {
+                    if ((SettingsHandler.getMatchingMethod().equals("semiautomatic") && bestMatch >= SettingsHandler.getThreshold()) || SettingsHandler.getMatchingMethod().equals("automatic")) {
+                        controller.loadListView();
+                        controller.readRightList();
                         matchNextSchema();
                     } else {
                         controller.loadListView();
@@ -216,7 +220,8 @@ public class MainApp extends Application {
 
         executor.shutdown();
 
-        if ((SettingsHandler.getMatchingMethod().equals("semiautomatic") && bestTemp >= SettingsHandler.getThreshold()) || SettingsHandler.getMatchingMethod().equals("automatic")) {
+        bestMatch = maxSchemaTest;
+        if ((SettingsHandler.getMatchingMethod().equals("semiautomatic") && maxSchemaTest >= SettingsHandler.getThreshold()) || SettingsHandler.getMatchingMethod().equals("automatic")) {
             return bestTemp;
         } else {
             // Dialog asking user to choose schema
@@ -279,7 +284,12 @@ public class MainApp extends Application {
             newPath2 = headers.get(temp).getPath(index);
             if (newPath2.isTruePath()) { // Makes sure the path is not just a filler
                 nodes = newPath2.getNodes();
-                if (pathLength >= nodes.length - 1) { //If the path is as long as the path of the header (meaning we have reached the node that headers.get(temp) points to)
+                if (pathLength == nodes.length) { //If the path is as long as the path of the header (meaning we have reached the node that headers.get(temp) points to)
+                    node = xmlHandler.getNodeByPath(path);
+                    if (node != null) {
+                        headers.get(temp).setTempPath(path);
+                    }
+                } else if (pathLength >= nodes.length - 1) {
                     newPath = new CustomPath(path, nodes[nodes.length - 1], headers.get(temp).getPath(index).getWeakNodes()[nodes.length - 1]);
                     node = xmlHandler.getNodeByPath(newPath);
                     if (node != null) {
@@ -470,14 +480,6 @@ public class MainApp extends Application {
 
     public void setFilesProcessedCount(int filesProcessedCount) {
         this.filesProcessedCount = filesProcessedCount;
-    }
-
-    public boolean isUseWeakPaths() {
-        return useWeakPaths;
-    }
-
-    public void setUseWeakPaths(boolean useWeakPaths) {
-        this.useWeakPaths = useWeakPaths;
     }
 
     public void resetFilesProcessedCount() {

@@ -1,7 +1,12 @@
 package xmltocsvparser.view;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import org.w3c.dom.Element;
@@ -14,12 +19,14 @@ import xmltocsvparser.model.CustomTreeItem;
 import xmltocsvparser.model.XMLHandler;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * Created by Robin on 04.11.2016.
  */
 public class MatchSchemaTreeController {
 
+    final PseudoClass match = PseudoClass.getPseudoClass("match");
     @FXML
     private TreeView<CustomPath> leftTreeView;
     @FXML
@@ -36,12 +43,12 @@ public class MatchSchemaTreeController {
     private Label leftLabel;
     @FXML
     private Label rightLabel;
-
     private int idCounter = 0;
     private CustomTreeItem<CustomPath> leftRoot, rightRoot;
     private int offset = -1;
     private MainApp mainApp;
     private int schemaUsed;
+    private ObservableSet<CustomTreeItem<CustomPath>> highlighted;
 
 
     public MatchSchemaTreeController() {
@@ -103,11 +110,43 @@ public class MatchSchemaTreeController {
 
         CustomPath path = treeItemLeft.getValue();
         mainApp.recursiveApplySchema(FXCollections.observableList(customHeaderCollection), path, schemaUsed, treeItemRight.getValue().getNodes().length);
+        mainApp.displayList();
     }
 
     @FXML
     private void removeButtonPressed() {
 
+        TreeItem<CustomPath> treeItemRight = rightTreeView.getSelectionModel().getSelectedItem();
+
+        CustomHeader head;
+        ArrayList<CustomHeader> customHeaderCollection = new ArrayList<>(0);
+        ObservableList<CustomHeader> headers = mainApp.getHeaders();
+        int[] strongPath = treeItemRight.getValue().getNodes();
+        int[] headStrongPath;
+        boolean matches;
+
+        // Gets all Headers that are children of the selected node
+        for (int temp = 0; temp < headers.size(); temp++) {
+            head = headers.get(temp);
+            headStrongPath = head.getPath(schemaUsed).getNodes();
+            matches = true;
+            if (strongPath.length <= headStrongPath.length) {
+                for (int temp2 = 0; temp2 < strongPath.length; temp2++) {
+                    if (strongPath[temp2] != headStrongPath[temp2]) {
+                        matches = false;
+                        break;
+                    }
+                }
+                if (matches) {
+                    customHeaderCollection.add(head);
+                }
+            }
+        }
+
+        for (int temp = 0; temp < customHeaderCollection.size(); temp++) {
+            customHeaderCollection.get(temp).removeTempPath();
+        }
+        mainApp.displayList();
     }
 
     @FXML
@@ -192,9 +231,52 @@ public class MatchSchemaTreeController {
         ArrayList<ArrayList<CustomHeader>> headerContainer = new ArrayList<>();
         ArrayList<Integer> pathCollection = new ArrayList<>();
         ArrayList<String> weakPathCollection = new ArrayList<>();
+        ArrayList<Boolean> childrenMatch = new ArrayList<>();
 
-        ArrayList<Integer> pathCollection2 = new ArrayList<>();
-        ArrayList<String> weakPathCollection2 = new ArrayList<>();
+        highlighted = FXCollections.observableSet(new HashSet<>());
+
+        rightTreeView.setCellFactory(tv -> {
+
+            // the cell:
+            TreeCell<CustomPath> cell = new TreeCell<CustomPath>() {
+
+                // indicates whether the cell should be highlighted:
+
+                private BooleanBinding highlightCell = Bindings.createBooleanBinding(() ->
+                                getTreeItem() != null && highlighted.contains(getTreeItem()),
+                        treeItemProperty(), highlighted);
+
+                // listener for the binding above
+                // note this has to be scoped to persist alongside the cell, as the binding
+                // will use weak listeners, and we need to avoid the listener getting gc'd:
+                private ChangeListener<Boolean> listener = (obs, wasHighlighted, isHighlighted) ->
+                        changeColor(isHighlighted);
+
+                // anonymous constructor: register listener with binding
+                {
+                    highlightCell.addListener(listener);
+                }
+
+                private void changeColor(boolean match) {
+                    if (match) {
+                        this.setStyle("-fx-background-color: lightgreen ;");
+                    } else {
+                        this.setStyle("");
+                    }
+                }
+            };
+
+            // display correct text:
+            cell.itemProperty().addListener((obs, oldItem, newItem) -> {
+                if (newItem == null) {
+                    cell.setText(null);
+                } else {
+                    cell.setText(newItem.toString());
+                }
+            });
+
+            return cell;
+        });
 
         schemaUsed = index;
         CustomPath customPath;
@@ -213,8 +295,15 @@ public class MatchSchemaTreeController {
                         ArrayList<CustomHeader> header = new ArrayList<>();
                         header.add(headers.get(temp));
                         headerContainer.add(header);
+                        childrenMatch.add(true);
+                        if (!headers.get(temp).hasTempPath()) {
+                            childrenMatch.set(pathCollection.indexOf(node), false);
+                        }
                     } else {
                         headerContainer.get(pathCollection.indexOf(node)).add(headers.get(temp));
+                        if (!headers.get(temp).hasTempPath()) {
+                            childrenMatch.set(pathCollection.indexOf(node), false);
+                        }
                     }
                 }
             }
@@ -222,7 +311,7 @@ public class MatchSchemaTreeController {
 
         for (int temp = 0; temp < headerContainer.size(); temp++) {
             CustomPath path = new CustomPath(pathCollection.get(temp), weakPathCollection.get(temp));
-            CustomTreeItem<CustomPath> newTreeItem = createTree(FXCollections.observableList(headerContainer.get(temp)), index, position + 1, path);
+            CustomTreeItem<CustomPath> newTreeItem = createTree(FXCollections.observableList(headerContainer.get(temp)), index, position + 1, path, childrenMatch.get(temp));
             if (newTreeItem != null) {
                 rightRoot.getChildren().add(newTreeItem);
             }
@@ -230,7 +319,7 @@ public class MatchSchemaTreeController {
     }
 
 
-    public CustomTreeItem<CustomPath> createTree(ObservableList<CustomHeader> headers, int index, int position, CustomPath parentPath) {
+    public CustomTreeItem<CustomPath> createTree(ObservableList<CustomHeader> headers, int index, int position, CustomPath parentPath, boolean matches) {
 
         ArrayList<ArrayList<CustomHeader>> headerContainer = new ArrayList<>();
         ArrayList<Integer> pathCollection = new ArrayList<>();
@@ -238,6 +327,8 @@ public class MatchSchemaTreeController {
         CustomPath customPath;
         CustomTreeItem<CustomPath> customTreeItem = new CustomTreeItem<>(parentPath, 1);
         int node;
+        boolean isLeaf = true;
+        ArrayList<Boolean> childrenMatch = new ArrayList<>();
 
         for (int temp = 0; temp < headers.size(); temp++) {
             if (headers.get(temp).isTrueHeader()) {
@@ -250,19 +341,31 @@ public class MatchSchemaTreeController {
                         ArrayList<CustomHeader> header = new ArrayList<>();
                         header.add(headers.get(temp));
                         headerContainer.add(header);
+                        childrenMatch.add(true);
+                        if (!headers.get(temp).hasTempPath()) {
+                            childrenMatch.set(pathCollection.indexOf(node), false);
+                        }
                     } else {
                         headerContainer.get(pathCollection.indexOf(node)).add(headers.get(temp));
+                        if (!headers.get(temp).hasTempPath()) {
+                            childrenMatch.set(pathCollection.indexOf(node), false);
+                        }
                     }
                 }
             }
         }
 
         for (int temp = 0; temp < headerContainer.size(); temp++) {
+            isLeaf = false;
             CustomPath path = new CustomPath(parentPath, pathCollection.get(temp), weakPathCollection.get(temp));
-            CustomTreeItem<CustomPath> newTreeItem = createTree(FXCollections.observableList(headerContainer.get(temp)), index, position + 1, path);
+            CustomTreeItem<CustomPath> newTreeItem = createTree(FXCollections.observableList(headerContainer.get(temp)), index, position + 1, path, childrenMatch.get(temp));
             if (newTreeItem != null) {
                 customTreeItem.getChildren().add(newTreeItem);
             }
+        }
+
+        if (matches) {
+            highlighted.add(customTreeItem);
         }
         return customTreeItem;
     }

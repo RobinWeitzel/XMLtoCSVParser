@@ -28,8 +28,6 @@ public class ParallelTestNewSchema implements Callable<Double> {
      * @param header            The list of headers which contain the schema
      * @param pathToXML         the path to the XMLfile to which the schema should be applied
      * @param index             the schema which should be used (corresponds to a file)
-     * @param useWeakPaths      whether to use strong or weak paths
-     * @param useBranchAndBound whether to use branch-Method or not (other currently buggy)
      * @param offset            The offset the new XML-file has
      */
     public ParallelTestNewSchema(ObservableList<CustomHeader> header, String pathToXML, int index, int offset) {
@@ -78,7 +76,7 @@ public class ParallelTestNewSchema implements Callable<Double> {
 
     /**
      * Gets the longests path of a node in a collection of Headers
-     * Same method as {@link xmltocsv.GUI#getLargestHeader(ArrayList)}
+     * Same method as {@link (ArrayList)}
      *
      * @param headers a collection of Headers that should be searched
      * @return the length of the longest path
@@ -115,7 +113,7 @@ public class ParallelTestNewSchema implements Callable<Double> {
     }
 
     /**
-     * For idea see {@link xmltocsv.GUI#recursiveApplySchema(ArrayList, CustomPath, int)}
+     * For idea see {@link (ArrayList, CustomPath, int)}
      *
      * @param headers the collection of Headers to be tested
      * @param path    the path to the parent
@@ -135,7 +133,12 @@ public class ParallelTestNewSchema implements Callable<Double> {
             if (newPath.isTruePath()) {
                 nodes = newPath.getNodes();
                 if (nodes != null) {
-                    if (pathLength == nodes.length - 1) { //If the path is as long as the path of the header (meaning we have reached the node that headers.get(temp) points to)
+                    if (pathLength == nodes.length) { //If the path is as long as the path of the header (meaning we have reached the node that headers.get(temp) points to)
+                        node = xmlHandler.getNodeByPath(path);
+                        if (node != null) {
+                            sucess = sucess + 1;
+                        }
+                    } else if (pathLength == nodes.length - 1) { //If the path is as long as the path of the header (meaning we have reached the node that headers.get(temp) points to)
                         node = xmlHandler.getNodeByPath(new CustomPath(path, nodes[nodes.length - 1], headers.get(temp).getPath(index).getWeakNodes()[nodes.length - 1]));
                         if (node != null) {
                             sucess = sucess + 1;

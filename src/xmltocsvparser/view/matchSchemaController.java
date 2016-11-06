@@ -217,7 +217,7 @@ public class MatchSchemaController {
         }
     }
 
-    private void readRightList() {
+    public void readRightList() {
         ObservableList<CustomHeader> headers = mainApp.getHeaders();
         CustomHeader customHeader;
 
