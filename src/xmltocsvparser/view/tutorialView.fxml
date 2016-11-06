@@ -25,10 +25,10 @@
                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                     </rowConstraints>
                     <children>
-                        <Button fx:id="forward" mnemonicParsing="false" text="&gt;&gt;" GridPane.columnIndex="3"
-                                GridPane.halignment="RIGHT" GridPane.rowIndex="1"/>
-                        <Button fx:id="back" mnemonicParsing="false" text="&lt;&lt;" GridPane.columnIndex="1"
-                                GridPane.rowIndex="1"/>
+                        <Button fx:id="forward" mnemonicParsing="false" onAction="#forwardButtonPressed" text="&gt;&gt;"
+                                GridPane.columnIndex="3" GridPane.halignment="RIGHT" GridPane.rowIndex="1"/>
+                        <Button fx:id="back" mnemonicParsing="false" onAction="#backButtonPressed" text="&lt;&lt;"
+                                GridPane.columnIndex="1" GridPane.rowIndex="1"/>
                         <ProgressBar fx:id="progressBar" prefHeight="18.0" prefWidth="366.0" progress="0.0"
                                      GridPane.columnIndex="2" GridPane.rowIndex="1"/>
                     </children>

@@ -53,7 +53,7 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("CSV to XML Parser");
-        this.primaryStage.getIcons().add(new Image("file:resources/icon3.png"));
+        this.primaryStage.getIcons().add(new Image("file:resources/icon.png"));
         headers = FXCollections.observableArrayList();
         initRootLayout();
     }
