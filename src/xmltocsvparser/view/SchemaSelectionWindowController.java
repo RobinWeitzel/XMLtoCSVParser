@@ -82,6 +82,8 @@ public class SchemaSelectionWindowController {
                 }
             }
         }
+        leftLabel.setText(mainApp.getFileList().get(0).getName());
+        rightLabel.setText("Schema");
         return offset;
     }
 

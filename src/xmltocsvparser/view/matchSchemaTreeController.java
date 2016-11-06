@@ -267,5 +267,7 @@ public class MatchSchemaTreeController {
         return customTreeItem;
     }
 
-
+    public void setLabel(String text) {
+        rightLabel.setText(text);
+    }
 }

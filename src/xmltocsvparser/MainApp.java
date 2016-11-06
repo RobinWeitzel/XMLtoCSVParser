@@ -53,7 +53,7 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("CSV to XML Parser");
-        this.primaryStage.getIcons().add(new Image("file:resources/icon.png"));
+        this.primaryStage.getIcons().add(new Image(MainApp.class.getResource("resources/icon.png").toExternalForm()));
         headers = FXCollections.observableArrayList();
         initRootLayout();
     }
@@ -76,6 +76,7 @@ public class MainApp extends Application {
             // Give the controller access to the main app.
             rootLayoutController = loader.getController();
             rootLayoutController.setMainApp(this);
+            rootLayoutController.disableMenu(true);
             primaryStage.show();
 
             loader = new FXMLLoader();
@@ -102,6 +103,7 @@ public class MainApp extends Application {
             AnchorPane start = loader.load();
 
             rootLayout.setCenter(start);
+            rootLayoutController.disableMenu(false);
 
             SchemaSelectionWindowController controller = loader.getController();
             controller.setMainApp(this);
@@ -135,6 +137,7 @@ public class MainApp extends Application {
                     bestSchema = testSchema();
                     if (bestSchema != -1) {
                         startRecursiveApplySchema(bestSchema);
+                        controller.setLabel(fileList.get(bestSchema).getName());
                     }
                     if ((SettingsHandler.getMatchingMethod().equals("semiautomatic") && bestSchema >= SettingsHandler.getThreshold()) || SettingsHandler.getMatchingMethod().equals("automatic")) {
                         matchNextSchema();
@@ -321,6 +324,7 @@ public class MainApp extends Application {
             controller.setMainApp(this);
             controller.startAddXML(filesProcessedCount);
             controller.startCreateTree(Math.max(bestSchema, 0));
+            controller.setLabel(fileList.get(bestSchema).getName());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -340,6 +344,7 @@ public class MainApp extends Application {
 
             controller.startAddXML(filesProcessedCount);
             controller.loadListView();
+            controller.setLabel(fileList.get(bestSchema).getName());
         } catch (Exception e) {
             e.printStackTrace();
         }

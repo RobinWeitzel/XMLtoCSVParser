@@ -62,6 +62,10 @@ public class StartController {
         // Show open file dialog
         List<File> list = fileChooser.showOpenMultipleDialog(mainApp.getPrimaryStage());
 
-        return new ArrayList<>(list);
+        if (list != null) {
+            return new ArrayList<>(list);
+        } else {
+            return null;
+        }
     }
 }

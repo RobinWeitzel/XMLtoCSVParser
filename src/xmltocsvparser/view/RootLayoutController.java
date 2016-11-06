@@ -109,7 +109,6 @@ public class RootLayoutController {
         if (list != null) {
             mainApp.setFileList(list);
             mainApp.startSchemaSelection();
-            disableMenu(false);
         }
     }
 

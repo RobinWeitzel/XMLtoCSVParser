@@ -3,7 +3,6 @@ package xmltocsvparser.view;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import xmltocsvparser.model.SettingsHandler;
 
@@ -57,8 +56,8 @@ public class TutorialViewController {
     }
 
     private void showImage(String path) {
-        Image image = new Image("file:resources/" + path);
-        imageView.setImage(image);
+        //Image image = new Image(MainApp.class.getResource("resources/" + path).toExternalForm());
+        //imageView.setImage(image);
     }
 
 }

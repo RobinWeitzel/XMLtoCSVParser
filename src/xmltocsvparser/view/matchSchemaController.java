@@ -88,6 +88,7 @@ public class MatchSchemaController {
                 }
             }
         }
+        leftLabel.setText(mainApp.getFileList().get(position).getName());
         return offset;
     }
 
@@ -236,5 +237,9 @@ public class MatchSchemaController {
             }
 
         }
+    }
+
+    public void setLabel(String text) {
+        rightLabel.setText(text);
     }
 }

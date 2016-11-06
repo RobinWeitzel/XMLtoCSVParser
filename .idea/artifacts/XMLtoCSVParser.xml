@@ -22,6 +22,7 @@
     <root id="root">
       <element id="archive" name="XMLtoCSVParser.jar">
         <element id="module-output" name="XMLtoCSVParser" />
+        <element id="dir-copy" path="$PROJECT_DIR$/src/xmltocsvparser/resources" />
       </element>
     </root>
   </artifact>
