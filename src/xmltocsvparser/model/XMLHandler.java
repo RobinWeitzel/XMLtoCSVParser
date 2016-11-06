@@ -125,7 +125,7 @@ public class XMLHandler {
      * Finds a node by using strong paths starting from document-root
      *
      * @param path the path to the node to search for
-     * @return a node if one wass found, otherwise null
+     * @return a node if one was found, otherwise null
      */
     public Node getNodeByPath (CustomPath path) {
 
@@ -134,9 +134,10 @@ public class XMLHandler {
         } else { // If path is not a filler
             NodeList nodeList = document.getDocumentElement().getChildNodes();
             Node node = null;
+            Node helper = null;
             int pathNode;
 
-            if (path.getNodes()[0] == 0 && path.getTagName() == document.getDocumentElement().getTagName() && path.getNodes().length == 1) { // Meaning the node points to the document-root
+            if (path.getNodes()[0] == 0 && path.getTagName().equals(document.getDocumentElement().getTagName()) && path.getNodes().length == 1) { // Meaning the node points to the document-root
                 return document.getDocumentElement();
             }
 

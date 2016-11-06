@@ -58,7 +58,7 @@ public class EndController {
             CSVHandler csvHandler = new CSVHandler(file.getAbsolutePath(), mainApp.getOffsetList());
             csvHandler.writeHeaderToCSV(mainApp.getHeaders(), mainApp.getFileList()); // Wirtes all headers (containing the headerName and the paths to all selected Nodes) to the CSV-file
 
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Information Dialog");
             alert.setHeaderText(null);
             alert.setContentText("File has been sucessfully saved");

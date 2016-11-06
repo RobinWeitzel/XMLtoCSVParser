@@ -5,17 +5,17 @@ package xmltocsvparser;/**
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import org.w3c.dom.Node;
-import xmltocsvparser.model.CustomHeader;
-import xmltocsvparser.model.CustomPath;
-import xmltocsvparser.model.ParallelTestNewSchema;
-import xmltocsvparser.model.XMLHandler;
+import xmltocsvparser.model.*;
 import xmltocsvparser.view.*;
 
 import java.io.File;
@@ -34,14 +34,15 @@ public class MainApp extends Application {
 
     private Stage primaryStage;
     private BorderPane rootLayout;
-    private List<File> fileList;
+    private ArrayList<File> fileList;
     private ArrayList<Integer> offsetList;
     private ObservableList<CustomHeader> headers;
-    private int threadCount = 8; // How many threads should be used
     private int filesProcessedCount; // how many files have been processed
     private boolean useWeakPaths = true; // If weak paths should be used
     private XMLHandler xmlHandler;
     private RootLayoutController rootLayoutController;
+    private int bestSchema;
+    private boolean endView = false;
 
     public static void main(String[] args) {
         launch(args);
@@ -51,7 +52,6 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("CSV to XML Parser");
-        offsetList = new ArrayList<>();
         headers = FXCollections.observableArrayList();
         initRootLayout();
     }
@@ -84,6 +84,10 @@ public class MainApp extends Application {
 
             StartController startController = loader.getController();
             startController.setMainApp(this);
+
+            if (SettingsHandler.getFirstTime()) {
+                openTutorialWindow();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -99,6 +103,7 @@ public class MainApp extends Application {
 
             SchemaSelectionWindowController controller = loader.getController();
             controller.setMainApp(this);
+            offsetList = new ArrayList<>();
             offsetList.add(controller.startAddXML());
             filesProcessedCount = 0;
         } catch (IOException e) {
@@ -107,7 +112,7 @@ public class MainApp extends Application {
     }
 
     public void matchNextSchema() {
-        rootLayoutController.disableMenu();
+        rootLayoutController.disableMenu(true);
         try {
             if (filesProcessedCount + 1 < fileList.size()) { // If there are more files to be processed
                 FXMLLoader loader = new FXMLLoader();
@@ -118,13 +123,23 @@ public class MainApp extends Application {
 
                 MatchSchemaController controller = loader.getController();
                 controller.setMainApp(this);
-                offsetList.add(controller.startAddXML(++filesProcessedCount));
-                xmlHandler = new XMLHandler(fileList.get(filesProcessedCount).getAbsolutePath(), offsetList.get(filesProcessedCount));
-                int bestSchema = testSchema();
-                if (bestSchema != -1) {
-                    startRecursiveApplySchema(bestSchema);
+                filesProcessedCount = filesProcessedCount + 1;
+                String string = fileList.get(filesProcessedCount).getName();
+                if (string.startsWith("Schema")) {
+                    matchNextSchema();
+                } else {
+                    offsetList.add(controller.startAddXML(filesProcessedCount));
+                    xmlHandler = new XMLHandler(fileList.get(filesProcessedCount).getAbsolutePath(), offsetList.get(filesProcessedCount));
+                    bestSchema = testSchema();
+                    if (bestSchema != -1) {
+                        startRecursiveApplySchema(bestSchema);
+                    }
+                    if ((SettingsHandler.getMatchingMethod().equals("semiautomatic") && bestSchema >= SettingsHandler.getThreshold()) || SettingsHandler.getMatchingMethod().equals("automatic")) {
+                        matchNextSchema();
+                    } else {
+                        controller.loadListView();
+                    }
                 }
-                controller.loadListView();
             } else {
                 FXMLLoader loader = new FXMLLoader();
                 loader.setLocation(MainApp.class.getResource("view/end.fxml"));
@@ -134,6 +149,7 @@ public class MainApp extends Application {
 
                 EndController controller = loader.getController();
                 controller.setMainApp(this);
+                endView = true;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -148,11 +164,11 @@ public class MainApp extends Application {
         return primaryStage;
     }
 
-    public List<File> getFileList() {
+    public ArrayList<File> getFileList() {
         return fileList;
     }
 
-    public void setFileList(List<File> fileList) {
+    public void setFileList(ArrayList<File> fileList) {
         this.fileList = fileList;
     }
 
@@ -164,12 +180,12 @@ public class MainApp extends Application {
         double maxSchemaTest = 0;
         int bestTemp = 0;
 
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount); // Uses up to 10 threads at the same time
+        ExecutorService executor = Executors.newFixedThreadPool(SettingsHandler.getThreadCount()); // Uses up to 10 threads at the same time
         List<Future<Double>> list = new ArrayList<Future<Double>>(); // Used to get the value once a thread finishes
 
-        // Applys the paths saved in the header to the new XML-File to find the best match
-        for (int temp = 0; temp < filesProcessedCount; temp++) {
-            Future<Double> future = executor.submit(new ParallelTestNewSchema(headers, fileList.get(filesProcessedCount).getAbsolutePath(), temp, useWeakPaths, true, offsetList.get(filesProcessedCount)));
+        // Applies the paths saved in the header to the new XML-File to find the best match
+        for (int temp = 0; temp < headers.get(0).getPaths().size(); temp++) {
+            Future<Double> future = executor.submit(new ParallelTestNewSchema(headers, fileList.get(filesProcessedCount).getAbsolutePath(), temp, offsetList.get(filesProcessedCount)));
             list.add(future);
 
         }
@@ -178,11 +194,9 @@ public class MainApp extends Application {
         decimalFormat.setRoundingMode(RoundingMode.CEILING);
         for (int temp = 0; temp < list.size(); temp++) {
             try {
-                string = fileList.get(temp).getAbsolutePath();
                 // Tests the schema and displays a percentage of how well the schema fits
                 schemaTest = list.get(temp).get(); // Gets the value of a thread, waits if value has not yet been calculated
-                string = string.substring(string.lastIndexOf("\\") + 1, string.length());
-                string = string + " (" + decimalFormat.format(schemaTest) + ")";
+                string = fileList.get(temp).getName() + " (" + decimalFormat.format(schemaTest) + ")";
                 arrayList.add(string);
 
                 // Checks if the new schema fits better than all the old ones
@@ -195,18 +209,24 @@ public class MainApp extends Application {
             }
         }
 
-        // Dialog asking user to choose schema
-        ChoiceDialog<String> dialog = new ChoiceDialog<>(arrayList.get(bestTemp), arrayList);
-        dialog.setTitle("Available schema");
-        dialog.setHeaderText("Please choose the schema you wish to apply");
-        dialog.setContentText("Schema:");
+        executor.shutdown();
 
-        Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()) {
-            return arrayList.lastIndexOf(result.get());
+        if ((SettingsHandler.getMatchingMethod().equals("semiautomatic") && bestTemp >= SettingsHandler.getThreshold()) || SettingsHandler.getMatchingMethod().equals("automatic")) {
+            return bestTemp;
+        } else {
+            // Dialog asking user to choose schema
+            ChoiceDialog<String> dialog = new ChoiceDialog<>(arrayList.get(bestTemp), arrayList);
+            dialog.setTitle("Available schema");
+            dialog.setHeaderText("Please choose the schema you wish to apply");
+            dialog.setContentText("Schema:");
+
+            Optional<String> result = dialog.showAndWait();
+            if (result.isPresent()) {
+                return arrayList.lastIndexOf(result.get());
+            }
+
+            return -1;
         }
-
-        return -1;
     }
 
     /**
@@ -233,7 +253,6 @@ public class MainApp extends Application {
 
     /**
      * Recursively applies a schema to a new file
-     * <p>
      * Idea:    Split tree into buckets according to their strong-path beginning
      * Check if this node exists using weak paths, if not drop the bucket
      *
@@ -241,7 +260,7 @@ public class MainApp extends Application {
      * @param path    the path to the parent
      * @param index   the schema to be used (corresponds to the files in order they were read in)
      */
-    private void recursiveApplySchema(ObservableList<CustomHeader> headers, CustomPath path, int index, int startPoint) {
+    public void recursiveApplySchema(ObservableList<CustomHeader> headers, CustomPath path, int index, int startPoint) {
 
         ArrayList<ArrayList<CustomHeader>> headerContainer = new ArrayList<>(0);
         ArrayList<Integer> positionalMapping = new ArrayList<>(0);
@@ -283,6 +302,145 @@ public class MainApp extends Application {
         }
     }
 
+    public void displayTree() {
+
+        headers.remove(headers.size() - 1);
+
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(MainApp.class.getResource("view/matchSchemaTree.fxml"));
+            AnchorPane start = loader.load();
+
+            rootLayout.setCenter(start);
+
+            MatchSchemaTreeController controller = loader.getController();
+            controller.setMainApp(this);
+
+            controller.setMainApp(this);
+            controller.startAddXML(filesProcessedCount);
+            controller.startCreateTree(Math.max(bestSchema, 0));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void displayList() {
+
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(MainApp.class.getResource("view/matchSchema.fxml"));
+            AnchorPane start = loader.load();
+
+            rootLayout.setCenter(start);
+
+            MatchSchemaController controller = loader.getController();
+            controller.setMainApp(this);
+
+            controller.startAddXML(filesProcessedCount);
+            controller.loadListView();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void displayListAndContinue() {
+
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(MainApp.class.getResource("view/matchSchema.fxml"));
+            AnchorPane start = loader.load();
+
+            rootLayout.setCenter(start);
+
+            MatchSchemaController controller = loader.getController();
+            controller.setMainApp(this);
+
+            controller.startAddXML(filesProcessedCount);
+            controller.loadListView();
+            controller.confirmButtonPressed();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void openSettingsWindow() {
+        if (!SettingsController.isSettingShowing()) {
+            try {
+                FXMLLoader loader = new FXMLLoader();
+                loader.setLocation(MainApp.class.getResource("view/settings.fxml"));
+                AnchorPane page = loader.load();
+
+                // Create settings stage
+                Stage settingsStage = new Stage();
+                settingsStage.setTitle("Settings");
+                settingsStage.initModality(Modality.APPLICATION_MODAL);
+                Scene scene = new Scene(page);
+                settingsStage.setScene(scene);
+
+                // Load Controller
+                SettingsController controller = loader.getController();
+                controller.setStage(settingsStage);
+
+                settingsStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+                    @Override
+                    public void handle(WindowEvent event) {
+                        SettingsController.setSettingShowing(false);
+                    }
+                });
+                settingsStage.show();
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void openTutorialWindow() {
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(MainApp.class.getResource("view/tutorialView.fxml"));
+            AnchorPane page = loader.load();
+
+            // Create settings stage
+            Stage tutorialStage = new Stage();
+            tutorialStage.setTitle("Tutorial");
+            tutorialStage.initModality(Modality.APPLICATION_MODAL);
+            Scene scene = new Scene(page);
+            tutorialStage.setScene(scene);
+
+            // Load Controller
+            TutorialViewController controller = loader.getController();
+
+            tutorialStage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void openHelpWindow() {
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(MainApp.class.getResource("view/helpView.fxml"));
+            AnchorPane page = loader.load();
+
+            // Create settings stage
+            Stage helpStage = new Stage();
+            helpStage.setTitle("Help");
+            helpStage.initModality(Modality.WINDOW_MODAL);
+            Scene scene = new Scene(page);
+            helpStage.setScene(scene);
+
+            // Load Controller
+            HelpViewController controller = loader.getController();
+            helpStage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
     public ArrayList<Integer> getOffsetList() {
         return offsetList;
     }
@@ -299,14 +457,6 @@ public class MainApp extends Application {
         this.headers = headers;
     }
 
-    public int getThreadCount() {
-        return threadCount;
-    }
-
-    public void setThreadCount(int threadCount) {
-        this.threadCount = threadCount;
-    }
-
     public int getFilesProcessedCount() {
         return filesProcessedCount;
     }
@@ -321,5 +471,25 @@ public class MainApp extends Application {
 
     public void setUseWeakPaths(boolean useWeakPaths) {
         this.useWeakPaths = useWeakPaths;
+    }
+
+    public void resetFilesProcessedCount() {
+        filesProcessedCount = -1;
+    }
+
+    public int getBestSchema() {
+        return bestSchema;
+    }
+
+    public void setBestSchema(int bestSchema) {
+        this.bestSchema = bestSchema;
+    }
+
+    public boolean isEndView() {
+        return endView;
+    }
+
+    public void setEndView(boolean endView) {
+        this.endView = endView;
     }
 }

@@ -17,10 +17,12 @@ import java.util.ArrayList;
  * @author Robin Weitzel
  */
 public class CustomPath implements Serializable {
+    public static final long serialVersionUID = -3040096452457271694L;
     private int[] nodes; // The exact path to a node, an Array containing all the turns needed to get there
     private String[] weakNodes; // A weak path using names (which might be used more than once in an XML-file)
     private String tagName;
     private boolean isTruePath = true;
+    private boolean justSchema = false;
 
     /**
      * This constructure is only used to create "false" Paths.
@@ -53,6 +55,23 @@ public class CustomPath implements Serializable {
             this.weakNodes[temp] = weekNodes[temp];
         }
         this.tagName = tagName;
+    }
+
+    /**
+     * Standard constructor
+     *
+     * @param nodes a array containing the set of directions to reach the node
+     * @param weekNodes a array containing the weak path
+     * @param tagName the tag-name to identify the node
+     */
+    public CustomPath(int node, String weekNode) {
+        this.nodes = new int[1];
+        this.weakNodes = new String[1];
+
+        this.nodes[0] = node;
+        this.weakNodes[0] = weekNode;
+
+        this.tagName = weekNode;
     }
 
     /**
@@ -174,5 +193,9 @@ public class CustomPath implements Serializable {
         }
         stringBuilder.delete(stringBuilder.length() - 1, stringBuilder.length());
         return stringBuilder.toString();
+    }
+
+    public boolean isJustSchema() {
+        return justSchema;
     }
 }

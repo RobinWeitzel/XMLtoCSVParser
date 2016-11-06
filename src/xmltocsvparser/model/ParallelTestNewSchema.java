@@ -19,7 +19,7 @@ public class ParallelTestNewSchema implements Callable<Double> {
     private XMLHandler xmlHandler;
     private double counter = 0, sucess = 0;
     private int index;
-    private boolean useWeakPaths, useBranchAndBound;
+    private boolean useWeakPaths, useBranchAndBound = true;
 
     /**
      * Creates a new Class-Object
@@ -32,18 +32,17 @@ public class ParallelTestNewSchema implements Callable<Double> {
      * @param useBranchAndBound whether to use branch-Method or not (other currently buggy)
      * @param offset            The offset the new XML-file has
      */
-    public ParallelTestNewSchema(ObservableList<CustomHeader> header, String pathToXML, int index, boolean useWeakPaths, boolean useBranchAndBound, int offset) {
+    public ParallelTestNewSchema(ObservableList<CustomHeader> header, String pathToXML, int index, int offset) {
         this.xmlHandler = new XMLHandler(pathToXML, offset);
         this.header = new ArrayList<>(header);
         this.index = index;
-        this.useWeakPaths = useWeakPaths;
-        this.useBranchAndBound = useBranchAndBound;
+        this.useWeakPaths = SettingsHandler.getUseWeakPaths();
         this.pathToXML = pathToXML;
     }
 
     /**
      * This method is called once the thread is started
-     * Begins recursivlely applying the schema and reaturns a sucessrate
+     * Begins recursively applying the schema and returns a successrate
      *
      * @return value between 0 and 1 (1 = perfect match, 0 = no match)
      * @Override
@@ -86,7 +85,7 @@ public class ParallelTestNewSchema implements Callable<Double> {
      */
     private int getLargestHeader(ArrayList<CustomHeader> headers) {
         int largestSize = 0;
-        int size = 0;
+        int size;
         for (int temp = 0; temp < headers.size(); temp++) {
             size = headers.get(temp).getPaths().size();
             if (size > largestSize) {

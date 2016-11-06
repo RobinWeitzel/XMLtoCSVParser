@@ -10,21 +10,24 @@
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
-                <MenuItem mnemonicParsing="false" text="Load new files"/>
-                <MenuItem mnemonicParsing="false" text="Load additional files"/>
+                <MenuItem mnemonicParsing="false" onAction="#handleNew" text="Load new files"/>
+                <MenuItem mnemonicParsing="false" onAction="#handleAdditionalFiles" text="Load additional files"/>
                 <MenuItem fx:id="readSchema" mnemonicParsing="false" onAction="#readSchemaButtonPressed"
                           text="Load schema"/>
-                <MenuItem mnemonicParsing="false" text="Exit"/>
+                <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit"/>
             </items>
           </Menu>
-          <Menu mnemonicParsing="false" text="Edit">
-            <items>
-              <MenuItem mnemonicParsing="false" text="Delete" />
-            </items>
-          </Menu>
+            <Menu mnemonicParsing="false" onAction="#handleSettings" text="Preferences">
+                <items>
+                    <MenuItem mnemonicParsing="false" onAction="#handleSettings" text="Settings"/>
+                    <MenuItem mnemonicParsing="false" onAction="#handleReset" text="Reset Application"/>
+                </items>
+            </Menu>
           <Menu mnemonicParsing="false" text="Help">
             <items>
-              <MenuItem mnemonicParsing="false" text="About" />
+                <MenuItem mnemonicParsing="false" onAction="#handleHelp" text="XML Parser Help"/>
+                <MenuItem mnemonicParsing="false" onAction="#handleTutorial" text="Tutorial"/>
+                <MenuItem mnemonicParsing="false" onAction="#handleAbout" text="About"/>
             </items>
           </Menu>
         </menus>

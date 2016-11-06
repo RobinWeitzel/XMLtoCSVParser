@@ -17,6 +17,7 @@ import java.util.Collections;
  * @author Robin Weitzel
  */
 public class CustomHeader implements Serializable {
+    public static final long serialVersionUID = -3040096452457271695L;
     private String headerName;
     private ArrayList<CustomPath> paths;
     private CustomPath tempPath;

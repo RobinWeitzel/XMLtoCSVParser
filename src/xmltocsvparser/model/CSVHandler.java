@@ -12,9 +12,10 @@ import java.util.List;
  * @author Robin Weitzel
  */
 public class CSVHandler {
-    private final String COMMA_DELIMITER = ";";
+    private String COMMA_DELIMITER;
     private ArrayList<Integer> differenceInFormatting;
     private String filePath;
+    private boolean useExcelLayout;
 
     /**
      * Standard constructor
@@ -25,6 +26,8 @@ public class CSVHandler {
     public CSVHandler(String filePath, ArrayList<Integer> differenceInFormatting) {
         this.filePath = filePath;
         this.differenceInFormatting = differenceInFormatting;
+        COMMA_DELIMITER = SettingsHandler.getSeperationCharacter();
+        useExcelLayout = SettingsHandler.getUseExcelLayout();
     }
 
     /**
@@ -39,43 +42,48 @@ public class CSVHandler {
         XMLHandler xmlHandler = null;
         StringBuilder stringBuilder = new StringBuilder();
         PrintWriter printWriter = null;
-        boolean schema;
-        int schemaCounter = 0;
+
 
         try {
             String text;
             OutputStream outputStream = new FileOutputStream(filePath);
 
-            // Excel had issues displaying the CSV correctly. This is used to ensure the file is recognized as UTF-8
-            outputStream.write(239);
-            outputStream.write(187);
-            outputStream.write(191);
+            if (useExcelLayout) {
+                // Excel had issues displaying the CSV correctly. This is used to ensure the file is recognized as UTF-8
+                outputStream.write(239);
+                outputStream.write(187);
+                outputStream.write(191);
+            }
 
             printWriter = new PrintWriter(new OutputStreamWriter(outputStream, "UTF-8"));
 
-            for (int temp = -1; temp < headers.size(); ) { // Saves a row in a StringBuilder. If temp = -1 the header is written to the file
-                schema = false;
+            for (int temp = -1; temp < paths.size(); ) { // Saves a row in a StringBuilder. If temp = -1 the header is written to the file
                 stringBuilder.delete(0, stringBuilder.length());
                 for (CustomHeader head : headers) {
-                    if (head.isJustSchema()) {
-                        schema = true;
-                        schemaCounter = schemaCounter + 1;
-                        break;
-                    }
                     text = head.getText(xmlHandler, temp);
                     text = text.replace("\n", "").replace("\r", "");
-                    stringBuilder.append("\"" + text + "\"" + COMMA_DELIMITER);
+                    if (useExcelLayout) {
+                        stringBuilder.append("\"" + text + "\"" + COMMA_DELIMITER);
+                    } else {
+                        stringBuilder.append(text + COMMA_DELIMITER);
+                    }
                 }
-                if (!schema) {
-                    stringBuilder.append("\n"); // After one row was written moves to the next row
-                }
+
+                stringBuilder.append("\n"); // After one row was written moves to the next row
+
                 temp = temp + 1;
-                if (temp < headers.size()) { // Because no file is needed for the header, the first file is only read in after the header has been written
-                    xmlHandler = new XMLHandler(paths.get(temp - schemaCounter).getAbsolutePath(), differenceInFormatting.get(temp - schemaCounter));
+                if (temp < paths.size()) { // Because no file is needed for the header, the first file is only read in after the header has been written
+                    while (paths.get(temp).getName().startsWith("Schema")) {
+                        temp = temp + 1;
+                        if (temp >= paths.size()) {
+                            break;
+                        }
+                    }
+                    if (temp < paths.size()) {
+                        xmlHandler = new XMLHandler(paths.get(temp).getAbsolutePath(), differenceInFormatting.get(temp));
+                    }
                 }
-                if (!schema) {
-                    printWriter.write(stringBuilder.toString()); // Writes the lines to the file
-                }
+                printWriter.write(stringBuilder.toString()); // Writes the lines to the file
             }
         } catch (Exception e) {
             e.printStackTrace();

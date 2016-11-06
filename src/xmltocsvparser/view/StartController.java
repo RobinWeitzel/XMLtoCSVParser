@@ -6,6 +6,7 @@ import javafx.stage.FileChooser;
 import xmltocsvparser.MainApp;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,14 +39,19 @@ public class StartController {
 
     @FXML
     public void loadXMLButtonPressed() {
-        List<File> list = startFileChooser();
+        ArrayList<File> list = startFileChooser();
         if (list != null) {
             mainApp.setFileList(list);
             mainApp.startSchemaSelection();
         }
     }
 
-    public List<File> startFileChooser() {
+    @FXML
+    public void tutorialButtonPressed() {
+        mainApp.openTutorialWindow();
+    }
+
+    private ArrayList<File> startFileChooser() {
         FileChooser fileChooser = new FileChooser();
 
         // Set extension filter
@@ -56,6 +62,6 @@ public class StartController {
         // Show open file dialog
         List<File> list = fileChooser.showOpenMultipleDialog(mainApp.getPrimaryStage());
 
-        return list;
+        return new ArrayList<>(list);
     }
 }

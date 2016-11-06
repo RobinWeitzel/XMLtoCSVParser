@@ -31,6 +31,8 @@ public class MatchSchemaController {
     @FXML
     private Button confirm;
     @FXML
+    private Button displayTree;
+    @FXML
     private Label leftLabel;
     @FXML
     private Label rightLabel;
@@ -196,9 +198,22 @@ public class MatchSchemaController {
     }
 
     @FXML
-    private void confirmButtonPressed() {
+    public void confirmButtonPressed() {
         readRightList();
         mainApp.matchNextSchema();
+    }
+
+    @FXML
+    private void displayTreeButtonPressed() {
+        if (mainApp.getBestSchema() != -1) {
+            mainApp.displayTree();
+        } else {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Information Dialog");
+            alert.setHeaderText(null);
+            alert.setContentText("Headers can only be displayed as tree if a schema was selected");
+            alert.showAndWait();
+        }
     }
 
     private void readRightList() {
